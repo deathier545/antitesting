@@ -1,8 +1,6 @@
 -- Load Wind UI Library
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/deathier545/antitesting/refs/heads/main/unlockanimals"))()
-
 -- Create window
 local Window = WindUI:CreateWindow({
     Title = "Moon HUB (Animal Simulator)",
@@ -4118,4 +4116,5 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
     if isDeveloper(player) then
         DevTag_destroy(player)
     end
+
 end)
