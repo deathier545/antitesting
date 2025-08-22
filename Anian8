@@ -1,0 +1,475 @@
+-- Serviços
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Jogador Local (quem está executando o script)
+local LocalPlayer = Players.LocalPlayer
+
+-- Listas de IDs
+local Developer_IDs = {
+    5427606840
+}
+local Premium_IDs = {
+    9265573975
+}
+
+-- Variáveis de controle (agora não precisam de tabelas, pois é só para um jogador)
+local tagConn = nil
+local tagGui = nil
+
+-- Funções de verificação (só precisam checar o LocalPlayer)
+local function isDeveloper()
+    for _, id in ipairs(Developer_IDs) do
+        if LocalPlayer.UserId == id then
+            return true
+        end
+    end
+    return false
+end
+
+local function isPremium()
+    for _, id in ipairs(Premium_IDs) do
+        if LocalPlayer.UserId == id then
+            return true
+        end
+    end
+    return false
+end
+
+-- Função para destruir a tag do jogador local
+local function destroyTag()
+    if tagConn then
+        tagConn:Disconnect()
+        tagConn = nil
+    end
+    if tagGui and tagGui.Parent then
+        tagGui:Destroy()
+        tagGui = nil
+    end
+end
+
+-- Função para criar a tag APENAS para o jogador local
+local function makeTag(char)
+    if not char then return end
+    
+    -- Destrói qualquer tag antiga para evitar duplicatas
+    destroyTag()
+
+    -- Define o texto e a cor da tag com base no status do JOGADOR LOCAL
+    local tagText, tagColor
+    if isDeveloper() then
+        tagText = "DEVELOPER"
+        tagColor = Color3.fromRGB(255, 0, 0) -- Vermelho
+    elseif isPremium() then
+        tagText = "PREMIUM"
+        tagColor = Color3.fromRGB(0, 0, 255) -- Azul
+    else
+        -- Se não for nenhum dos dois, ele é "FREE USER"
+        tagText = "FREE USER"
+        tagColor = Color3.fromRGB(128, 128, 128) -- Cinza
+    end
+
+    local head = char:WaitForChild("Head", 10)
+    if not head then return end
+
+    -- Criação da GUI
+    local b = Instance.new("BillboardGui")
+    b.Name = "PlayerTag"
+    b.AlwaysOnTop = true
+    b.Size = UDim2.new(1.5, 0, 0.42, 0)
+    b.StudsOffset = Vector3.new(0, 3.5, 0)
+    b.Adornee = head
+    b.Parent = head
+    tagGui = b -- Armazena a GUI na variável local
+
+    local f = Instance.new("Frame")
+    f.AnchorPoint = Vector2.new(0.5, 0.5)
+    f.Position = UDim2.new(0.5, 0, 0.5, 0)
+    f.Size = UDim2.new(1, 0, 1, 0)
+    f.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    f.BackgroundTransparency = 0.15
+    f.Parent = b
+
+    local c = Instance.new("UICorner", f)
+    c.CornerRadius = UDim.new(0, 20)
+
+    local s = Instance.new("UIStroke", f)
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Thickness = 3
+    s.Color = tagColor
+
+    local t = Instance.new("TextLabel", f)
+    t.BackgroundTransparency = 1
+    t.Size = UDim2.new(0.95, 0, 0.9, 0)
+    t.Position = UDim2.new(0.5, 0, 0.5, 0)
+    t.AnchorPoint = Vector2.new(0.5, 0.5)
+    t.Font = Enum.Font.GothamBold
+    t.Text = tagText
+    t.TextScaled = true
+    t.TextColor3 = tagColor
+    t.TextStrokeTransparency = 0.5
+    t.TextStrokeColor3 = Color3.new(0, 0, 0)
+
+    TweenService:Create(b, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {StudsOffset = Vector3.new(0, 3.9, 0)}):Play()
+
+    local currentTween
+    tagConn = RunService.RenderStepped:Connect(function()
+        if not head or not head.Parent or not b.Parent then
+            destroyTag()
+            return
+        end
+        local cam = workspace.CurrentCamera
+        if not cam then return end
+        local dist = (cam.CFrame.Position - head.Position).Magnitude
+        local tr = dist < 25 and 0 or dist < 45 and (dist - 25) / 20 or 1
+        local bg = 0.15 + tr
+        if math.abs(f.BackgroundTransparency - bg) > 0.05 then
+            if currentTween then currentTween:Cancel() end
+            currentTween = TweenService:Create(f, TweenInfo.new(0.3), {BackgroundTransparency = bg})
+            currentTween:Play()
+            TweenService:Create(t, TweenInfo.new(0.3), {TextTransparency = tr}):Play()
+            TweenService:Create(s, TweenInfo.new(0.3), {Transparency = tr}):Play()
+        end
+    end)
+end
+
+-- Função de setup que roda apenas para o jogador local
+local function setupLocalPlayerTag()
+    if LocalPlayer.Character then
+        makeTag(LocalPlayer.Character)
+    end
+    LocalPlayer.CharacterAdded:Connect(makeTag)
+    LocalPlayer.CharacterRemoving:Connect(destroyTag)
+end
+
+-- Inicia o processo
+setupLocalPlayerTag()
+
+-- Load Wind UI Library
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/deathier545/antitesting/refs/heads/main/unlockanimals"))()
+
+-- Create window
+local Window = WindUI:CreateWindow({
+    Title = "Moon HUB (Animal Simulator)",
+    Icon = "moon",
+    Author = "d1_ofc and onlydecisions",
+    Folder = "MoonHUB",
+    Size = UDim2.fromOffset(580, 460),
+    Theme = "Dark",
+    SideBarWidth = 170,
+    HasOutline = true
+})
+
+-- Create tabs
+local Tabs = {
+    Farm = Window:Tab({Title = "Farm", Icon = "package"}),
+    PVP = Window:Tab({Title = "PvP", Icon = "sword"}),
+    Teleport = Window:Tab({Title = "Teleport", Icon = "map-pin"}),
+    Misc = Window:Tab({Title = "Misc", Icon = "box"}),
+    TargetTab = Window:Tab({ Title = "Target", Icon = "circle-user-round"}),
+    Scripts = Window:Tab({Title = "Scripts", Icon = "code"}),
+    Skins = Window:Tab({Title = "Skins", Icon = "shirt"}),
+    Premium = Window:Tab({Title = "Premium", Icon = "gem"}),
+    Settings = Window:Tab({Title = "Settings", Icon = "settings"})
+}
+
+Window:SelectTab(1)
+
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+
+local RS = game:GetService("ReplicatedStorage")
+local Events = RS:WaitForChild("Events")
+local SpawnEvent = Events:WaitForChild("SpawnEvent")
+local PlotSystemRE = RS:WaitForChild("PlotSystemRE")
+
+Tabs.Premium:Section({ Title = "God mode" })
+
+-- Load the unlockanimals configuration
+local map = {
+    Axolotl = {id = "axolotl", anim = "axolotl_Anim"},
+    BTrex = {id = "babydino", anim = "btrexAnim"},
+    BabyCat = {id = "babycats", anim = "babycatAnim"},
+    BabyElephant = {
+        id = "baby_elephant", anim = "babyelephantAnim", gamepassPassId = 89053083,
+        skinIdOverrides = {
+            elephant1 = "elephant1", elephant2 = "elephant2", elephant3 = "elephant3",
+            elephant4 = "elephant4", elephant5 = "elephant5", elephant6 = "elephant6",
+            elephant7 = "elephant7", elephant8 = "elephant8", elephant9 = "elephant9",
+            elephant10 = "elephant10", elephant11 = "elephant11", elephant12 = "elephant12",
+            elephant13 = "elephant13", elephant14 = "elephant14", elephant15 = "elephant15",
+            elephant16 = "elephant16", elephant17 = "elephant17", elephant18 = "elephant18",
+            elephant19 = "elephant19", elephant20 = "elephant20", elephant21 = "elephant21",
+            elephant22 = "elephant22", elephant23 = "elephant23", elephant24 = "gamepass24",
+            elephant27 = "gamepass27", elephant28 = "gamepass28", elephant29 = "gamepass29",
+            elephant30 = "gamepass30", elephant31 = "gamepass31"
+        },
+        animOverrides = {
+            elephant24 = "babytankelephantAnim", elephant27 = "babytankelephantAnim",
+            elephant28 = "babytankelephantAnim", elephant29 = "babytankelephantAnim",
+            elephant30 = "babytankelephantAnim", elephant31 = "babytankelephantAnim"
+        }
+    },
+    BabyKangaroo = {id = "baby_kangaroos", anim = "baby_kangarooAnim"},
+    BabyLionRework = {
+        id = "babylion_rework", anim = "babylionR_Anim", gamepassPassId = 121800750,
+        skinIdOverrides = {
+            lion1 = "babylion1", lion2 = "babylion2", lion3 = "babylion3", lion4 = "babylion4",
+            lion5 = "babylion5", lion6 = "babylion6", lion7 = "babylion7", lion8 = "babylion8",
+            lion9 = "babylion9", lion10 = "babylion10", lion11 = "babylion11", lion12 = "babylion12",
+            lion13 = "babylion13", lion14 = "babylion14", lion15 = "babylion15", lion16 = "babylion16"
+        },
+        animOverrides = {
+            gamepass17 = "babylionRWing_Anim", gamepass18 = "babylionRWing_Anim",
+            gamepass21 = "babygriffin_Anim", gamepass22 = "babygriffin_Anim",
+            gamepass23 = "babygriffin_Anim", gamepass24 = "babygriffin_Anim",
+            gamepass25 = "babygriffin_Anim", gamepass26 = "babygriffin_Anim"
+        }
+    },
+    BabyPenguin = {id = "baby_penguin", anim = "babypenguinAnim"},
+    BabyWolf = {
+        id = "baby_wolf", anim = "babywolf1Anim", gamepassPassId = 38950138,
+        skinIdOverrides = {
+            babywolf1 = "baby_wolf1", babywolf2 = "baby_wolf2", babywolf3 = "baby_wolf3",
+            babywolf4 = "baby_wolf4", babywolf5 = "baby_wolf5", babywolf6 = "baby_wolf6",
+            babywolf7 = "baby_wolf7", babywolf8 = "baby_wolf8", babywolf9 = "baby_wolf9",
+            babywolf10 = "baby_wolf10", babywolf11 = "baby_wolf11", babywolf12 = "baby_wolf12",
+            babywolf13 = "baby_wolf13", babywolf14 = "baby_wolf14", babywolf15 = "baby_wolf15",
+            babywolf16 = "baby_wolf16", babywolf17 = "baby_wolf17", babywolf18 = "gamepass18",
+            babywolf19 = "gamepass19", babywolf20 = "gamepass20", babywolf21 = "gamepass21",
+            babywolf22 = "gamepass22", babywolf23 = "gamepass23", babywolf24 = "gamepass24"
+        },
+        animOverrides = {
+            babywolf1 = "babywolf1Anim", babywolf2 = "babywolf1Anim", babywolf3 = "babywolf1Anim",
+            babywolf4 = "babywolf1Anim", babywolf5 = "babywolf1Anim", babywolf6 = "babywolf1Anim",
+            babywolf7 = "babywolf1Anim", babywolf8 = "babywolf1Anim", babywolf9 = "babywolf1Anim",
+            babywolf10 = "babywolf1Anim", babywolf11 = "babywolf1Anim", babywolf12 = "babywolf1Anim",
+            babywolf13 = "babywolf1Anim", babywolf14 = "babywolf1Anim", babywolf15 = "babywolf2Anim",
+            babywolf16 = "babywolf2Anim", babywolf17 = "babywolf2Anim", babywolf18 = "babywolf3Anim",
+            babywolf19 = "babywolf3Anim", babywolf20 = "babywolf3Anim", babywolf21 = "babywolf3Anim",
+            babywolf22 = "babywolf3Anim", babywolf23 = "babywolf3Anim", babywolf24 = "babywolf3Anim"
+        }
+    },
+    Bear = {id = "bears", anim = "bearAnim"},
+    Capybara = {id = "capybara", anim = "capybaraAnim"},
+    Cat = {id = "cats", anim = "catAnim"},
+    Centaur = {id = "centaur", anim = "centaurAnim"},
+    Chicken = {id = "chicken", anim = "chickenAnim"},
+    Christmas2023 = {
+        id = "christmas2023", anim = "newhorseAnim", gamepassPassId = 670590394,
+        skinIdOverrides = {
+            capybara = "capybara1", snake = "snake1", crocodile = "crocodile1", horse = "horse1",
+            giraffe = "giraffe1", gamepass_horse = "gamepass_horse", gamepass_giraffe1 = "gamepass_giraffe1",
+            gamepass_giraffe2 = "gamepass_giraffe2", gamepass_babywolf = "gamepass_babywolf",
+            gamepass_wolf = "gamepass_wolf"
+        },
+        animOverrides = {
+            capybara = "capybaraAnim", snake = "snakeAnim", crocodile = "crocodileAnim",
+            horse = "newhorseAnim", giraffe = "giraffeAnim", gamepass_horse = "newhorseAnim",
+            gamepass_giraffe1 = "christmasgiraffeAnim", gamepass_giraffe2 = "christmasgiraffeAnim",
+            gamepass_babywolf = "babywolf1Anim", gamepass_wolf = "wolf1Anim"
+        },
+        tokenOverrides = {
+            capybara = "XM23CP", snake = "XM23SN", crocodile = "XM23CR", horse = "XM23HR", giraffe = "XM23GR"
+        }
+    },
+    Christmas2024 = {id = "christmas2024", anim = "newbear2Anim"},
+    Cow = {id = "cows", anim = "cowAnim"},
+    Crab = {id = "crab", anim = "crabAnim"},
+    Crocodile = {id = "crocodile", anim = "crocodileAnim"},
+    Dragon = {id = "dragons", anim = "dragonAnim"},
+    Eagle = {id = "eagle", anim = "eagleAnim"},
+    Elephant = {id = "elephant", anim = "elephantAnim"},
+    Fox = {id = "fox", anim = "foxAnim"},
+    Frog = {id = "frog", anim = "frogAnim"},
+    Giraffe = {id = "giraffe", anim = "giraffeAnim"},
+    Gorilla = {id = "gorilla", anim = "gorillaAnim"},
+    Halloween2023 = {
+        id = "halloween2023", anim = "newhorseAnim", gamepassPassId = 270811024,
+        animOverrides = {
+            horse = "newhorseAnim", capybara = "capybaraAnim", crocodile = "crocodileAnim",
+            monkey = "halloweenmonkeyAnim", dragon = "dragonAnim", snake = "snakeAnim",
+            gamepass_lion = "reworklion_Anim", gamepass_lioness = "reworklion_Anim",
+            gamepass_babylion = "babylionR_Anim", gamepass_dragon = "dragonAnim",
+            gamepass_monkey = "halloweenmonkeyAnim", gamepass_horse = "newhorseAnim"
+        },
+        tokenOverrides = {
+            horse = "H23HR", capybara = "H23CP", crocodile = "H23CR", monkey = "H23MK",
+            dragon = "H23DR", snake = "H23SN"
+        }
+    },
+    Horse = {id = "horse", anim = "horseAnim"},
+    Husky = {id = "husky", anim = "huskyAnim"},
+    Hyena = {id = "hyena", anim = "hyenaAnim"},
+    Kangaroo = {id = "kangaroos", anim = "kangarooAnim"},
+    Komodo = {id = "komodo", anim = "komodoAnim"},
+    LionRework = {id = "lion_rework", anim = "reworklion_Anim"},
+    LionessRework = {id = "lioness_rework", anim = "reworklion_Anim"},
+    Mantis = {id = "mantis", anim = "mantisAnim"},
+    Monkey = {id = "monkey", anim = "monkeyAnim"},
+    NewBear = {id = "newbears", anim = "newbearAnim"},
+    NewDeer = {id = "newdeer", anim = "newdeerAnim"},
+    NewHorse = {id = "newhorse", anim = "newhorseAnim"},
+    Old = {
+        id = "old", anim = "lionAnim",
+        animOverrides = {
+            mysticpanther = "lionessAnim", greywolf = "wolfAnim", brownlion = "lionAnim",
+            brownlioness = "lionessAnim", baby_brownlion = "babylionAnim", brown_cerberus = "cerberusAnim",
+            jaguar = "lionessAnim", mysticlion = "lionAnim", mysticwolf = "wolfAnim", blackpanther = "lionessAnim"
+        }
+    },
+    Penguin = {
+        id = "penguin", anim = "penguinAnim",
+        skinIdOverrides = {
+            police2 = "police1_penguin", police1 = "police2_penguin",
+            yellow_samuraipenguin = "gamepass1", red_samuraipenguin = "gamepass2", blue_samuraipenguin = "gamepass3"
+        },
+        animOverrides = {
+            gamepass1 = "premPenguinAnim", gamepass2 = "premPenguinAnim", gamepass3 = "premPenguinAnim"
+        }
+    },
+    Pig = {
+        id = "pigs", anim = "pigAnim",
+        animOverrides = {
+            babypig1 = "babypigAnim", babypig2 = "babypigAnim", babypig3 = "babypigAnim",
+            gamepass1 = "pig2Anim", gamepass2 = "pig2Anim", gamepass3 = "pig2Anim", gamepass4 = "pig2Anim"
+        }
+    },
+    Rabbit = {
+        id = "rabbit", anim = "rabbitAnim",
+        skinIdOverrides = {
+            anime_rabbit = "gamepass1", police_rabbit = "gamepass2", white_rabbit = "gamepass3"
+        },
+        animOverrides = {
+            gamepass1 = "premRabbitAnim", gamepass2 = "premRabbitAnim", gamepass3 = "premRabbitAnim"
+        }
+    },
+    Rhino = {id = "rhino", anim = "rhinoAnim"},
+    Skeleton = {
+        id = "skeletons", anim = "skeleton_deerAnim",
+        animOverrides = {
+            deer_1 = "skeleton_deerAnim", rhino_1 = "skeleton_rhinoAnim", trex_1 = "skeleton_trexAnim",
+            wolf_1 = "skeleton_wolfAnim", gamepass_deer2 = "skeleton_deerAnim", gamepass_deer3 = "skeleton_deerAnim",
+            gamepass_rhino2 = "skeleton_rhinoAnim", gamepass_rhino3 = "skeleton_rhinoAnim",
+            gamepass_trex2 = "skeleton_trexAnim", gamepass_trex3 = "skeleton_trexAnim",
+            gamepass_wolf2 = "skeleton_wolfAnim", gamepass_wolf3 = "skeleton_wolfAnim"
+        }
+    },
+    Snake = {
+        id = "snakes", anim = "snakeAnim",
+        animOverrides = {
+            gamepass1 = "snakeAnim2", gamepass2 = "snakeAnim2", gamepass3 = "snakeAnim2",
+            gamepass4 = "snakeAnim2", gamepass5 = "snakeAnim2"
+        }
+    },
+    Spider = {id = "spider", anim = "spiderAnim"},
+    Squirrel = {
+        id = "squirrel", anim = "squirrelAnim",
+        animOverrides = {
+            gamepass1 = "squirrel2Anim", gamepass2 = "squirrel2Anim", gamepass3 = "squirrel2Anim",
+            gamepass4 = "squirrel2Anim", gamepass5 = "squirrel2Anim"
+        }
+    },
+    Tiger = {
+        id = "tiger", anim = "tigerAnim",
+        animOverrides = {
+            circle_grey = "babytigerAnim", orange_babytiger = "babytigerAnim",
+            white_babytiger = "babytigerAnim", stripe_grey = "babytigerAnim",
+            gamepass1 = "premTigerAnim", gamepass2 = "premTigerAnim", gamepass3 = "premTigerAnim"
+        }
+    },
+    Valentines2024 = {
+        id = "valentines2024", anim = "pegasusAnim",
+        animOverrides = {
+            capybara1 = "capybaraAnim", eagle1 = "eagleAnim", eagle2 = "eagleAnim",
+            giraffe1 = "giraffeAnim", giraffe2 = "giraffeAnim", horse1 = "pegasusAnim",
+            horse2 = "pegasusAnim", snake1 = "snakeAnim"
+        }
+    },
+    WolfRework = {
+        id = "wolf_rework", anim = "wolf1Anim",
+        skinIdOverrides = {
+            wolf18 = "gamepass18", wolf19 = "gamepass19", wolf20 = "gamepass20",
+            wolf21 = "gamepass21", wolf22 = "gamepass22", wolf23 = "gamepass23", wolf24 = "gamepass24"
+        },
+        animOverrides = {
+            wolf15 = "wolf2Anim", wolf16 = "wolf2Anim", wolf18 = "wolf3Anim", wolf19 = "wolf3Anim",
+            wolf20 = "wolf3Anim", wolf21 = "wolf3Anim", wolf22 = "wolf3Anim", wolf23 = "wolf3Anim",
+            wolf24 = "wolf3Anim"
+        }
+    }
+}
+
+-- Variables to track the last clicked animal
+local lastClickedAnimal = nil
+local lastClickedSkin = nil
+local godmodeToggle = false -- Toggle for godmode vs regular spawning
+
+-- Function to get spawn arguments for the selected animal
+local function getSpawnArgs(animalName, skinName)
+    -- Safety check for parameters
+    if not animalName then
+        return nil, "animalName is nil"
+    end
+    
+    -- Safety check for map table
+    if not map then
+        return nil, "map table is nil"
+    end
+    
+    -- Try exact match first
+    local animalConfig = map[animalName]
+    
+    -- If not found, try case-insensitive match
+    if not animalConfig then
+        for key, value in pairs(map) do
+            if string.lower(key) == string.lower(animalName) then
+                animalConfig = value
+                break
+            end
+        end
+    end
+    
+    if not animalConfig then
+        return nil, "Animal not found in configuration"
+    end
+    
+    local skinId = skinName
+    local anim = animalConfig.anim
+    
+    -- Check for skin overrides
+    if animalConfig.skinIdOverrides and animalConfig.skinIdOverrides[skinName] then
+        skinId = animalConfig.skinIdOverrides[skinName]
+    end
+    
+    -- Check for animation overrides
+    if animalConfig.animOverrides and animalConfig.animOverrides[skinName] then
+        anim = animalConfig.animOverrides[skinName]
+    end
+    
+    return {animalConfig.id, skinId, anim}, nil
+end
+
+-- Function to handle animal clicks and store the selection
+local function handleAnimalClick(animalName, skinName)
+    -- Safety check for parameters
+    if not animalName then
+        return
+    end
+    
+    -- Safety check for WindUI
+    if not WindUI or not WindUI.Notify then
+        return
+    end
+    
+    lastClickedAnimal = animalName
+    lastClickedSkin = skinName or animalName -- Default to animal name if no skin specified
+    
+    if godmodeToggle then
+        -- Auto-start godmode when toggle is ON
+        if WindUI and WindUI.Notify then
+            pcall(function()
+                WindUI:Notify
