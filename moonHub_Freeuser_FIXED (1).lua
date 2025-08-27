@@ -2634,7 +2634,7 @@ local Window = Rayfield:CreateWindow({
       FileName = "MoonHub-Key2", -- unique key cache file
       SaveKey = false, -- cache key locally
       GrabKeyFromSite = true, -- fetch from URL below
-      Key = {"https://raw.githubusercontent.com/deathier545/antitesting/refs/heads/main/MoonHub-Key"}
+      Key = {"https://raw.githubusercontent.com/deathier545/antitesting/refs/heads/main/MoonHub-Key2"}
    }
 })
 
