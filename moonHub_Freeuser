@@ -2633,7 +2633,7 @@ KeySettings = {
   FileName = "MoonHub-Key",
   SaveKey = true,
   GrabKeyFromSite = true,  -- tell Rayfield to fetch from a URL
-  Key = {"https://raw.githubusercontent.com/<user>/<repo>/<branch>/path/to/key.txt"}
+  Key = {"https://raw.githubusercontent.com/deathier545/antitesting/refs/heads/main/MoonHub-Key"}
 }
 
 --[[
