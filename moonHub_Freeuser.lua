@@ -2626,15 +2626,18 @@ local Window = Rayfield:CreateWindow({
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
 
-   KeySystem = true,
-KeySettings = {
-  Title = "Moon Hub",
-  Subtitle = "Key System",
-  FileName = "MoonHub-Key",
-  SaveKey = true,
-  GrabKeyFromSite = true,  -- tell Rayfield to fetch from a URL
-  Key = {"https://raw.githubusercontent.com/deathier545/antitesting/refs/heads/main/MoonHub-Key"}
-}
+local Window = Rayfield:CreateWindow({
+  Name = "Moon Hub",
+  KeySystem = true,
+  KeySettings = {
+    Title = "Moon Hub",
+    Subtitle = "Key System",
+    FileName = "MoonHub-Key",
+    SaveKey = true,               -- cache the key locally
+    GrabKeyFromSite = true,       -- fetch from URL
+    Key = {"https://raw.githubusercontent.com/deathier545/antitesting/refs/heads/main/MoonHub-Key"}
+  }
+})
 
 --[[
     TAB CREATION
